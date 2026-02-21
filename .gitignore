@@ -1,0 +1,12 @@
+# Foundry
+cache/
+out/
+broadcast/
+.env
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
