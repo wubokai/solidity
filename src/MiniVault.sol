@@ -10,64 +10,116 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 
-contract MiniVault is ERC20, ReentrancyGuard{
+contract MiniVault is ERC20, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
 
-    error ZeroAmount();
-    error ZeroShares();
     error ZeroAssets();
+    error ZeroShares();
     error InsufficientShares();
+    error NoAllowanceYet(); 
+    error InsufficientAllowance();
 
     event Deposit(address indexed caller, address indexed receiver, uint256 assets, uint256 shares);
-    event Withdraw(address indexed caller, address indexed receiver, uint256 assets, uint256 shares);
-    
-    
-    IERC20 public immutable asset;
-    uint256 public totalShares;
-    mapping(address => uint256) public balance;
-    address public Owner;
+    event Withdraw(address indexed caller, address indexed receiver, address indexed owner, uint256 assets, uint256 shares);
 
-    modifier onlyOwner{
-        require(msg.sender == Owner,"not owner");
-        _;
-    }
+    IERC20 public immutable asset;
 
     constructor(
         IERC20 _asset,
         string memory shareName_,
         string memory shareSymbol_
-    )ERC20(shareName_,shareSymbol_) onlyOwner{
+    ) ERC20(shareName_, shareSymbol_) Ownable(msg.sender) {
         asset = _asset;
     }
 
-
-    function totalAssets() public view returns(uint256){
-            return asset.balanceOf(address(this));
+    function totalAssets() public view returns (uint256) {
+        return asset.balanceOf(address(this));
     }
 
+    // deposit: DOWN
+    function convertToShares(uint256 assets) public view returns (uint256 shares) {
+        if (assets == 0) return 0;
 
-    function deposit(uint256 assets, address receiver) external returns(uint256 shares){
-            require(assets>0,"assets not enough");
-            shares = convertToShares(assets);
-            
+        uint256 S = totalSupply();
+        uint256 A = totalAssets();
 
+        if (S == 0 || A == 0) return assets;
+
+        shares = Math.mulDiv(assets, S, A, Math.Rounding.Floor);
     }
 
-    function withdraw(uint256 assets, address receiver, address owner_) external returns (uint256 sharesBurned){
+    // assets from shares: DOWN
+    function convertToAssets(uint256 shares) public view returns (uint256 assetsOut) {
+        if (shares == 0) return 0;
 
+        uint256 S = totalSupply();
+        uint256 A = totalAssets();
 
+        if (S == 0) return 0;
+
+        assetsOut = Math.mulDiv(shares, A, S, Math.Rounding.Floor);
     }
 
+    // withdraw preview: UP
+    function previewWithdraw(uint256 assets) public view returns (uint256 sharesNeeded) {
+        if (assets == 0) return 0;
 
-    function convertToShares(uint256 assets) public pure returns(uint256){
-        
-        if(assets==0) return assets;
+        uint256 S = totalSupply();
+        uint256 A = totalAssets();
 
-        
+        if (S == 0 || A == 0) return 0;
+
+        sharesNeeded = Math.mulDiv(assets, S, A, Math.Rounding.Ceil);
     }
 
-    function convertToAssets(uint256 shares) public pure returns(uint256){
-        return shares;
+    function deposit(uint256 assets, address receiver)
+        external
+        nonReentrant
+        returns (uint256 shares)
+    {
+        if (assets == 0) revert ZeroAssets();
+
+        shares = convertToShares(assets);
+        if (shares == 0) revert ZeroShares();
+
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+        _mint(receiver, shares);
+
+        emit Deposit(msg.sender, receiver, assets, shares);
     }
 
+    function withdraw(uint256 assets, address receiver, address owner_)
+        external
+        nonReentrant
+        returns (uint256 sharesBurned)
+    {
+        if (assets == 0) revert ZeroAssets();
+
+        sharesBurned = previewWithdraw(assets);
+        if (sharesBurned == 0) revert ZeroShares();
+
+        if (balanceOf(owner_) < sharesBurned) revert InsufficientShares();
+
+       
+        // If caller is not the owner, spend share allowance (ERC20 allowance of shares)
+        if (owner_ != msg.sender) {
+            uint256 allowed = allowance(owner_, msg.sender);
+            if (allowed < sharesBurned) revert InsufficientAllowance();
+
+            // Decrease allowance unless it's infinite
+            if (allowed != type(uint256).max) {
+             _approve(owner_, msg.sender, allowed - sharesBurned);
+            }
+        }
+
+     
+        _burn(owner_, sharesBurned);
+        asset.safeTransfer(receiver, assets);
+
+        emit Withdraw(msg.sender, receiver, owner_, assets, sharesBurned);
+    }
+
+    function skim() external view returns (uint256) {
+        return totalAssets();
+    }
 }
