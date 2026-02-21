@@ -85,7 +85,7 @@ contract D4MiniLending is ReentrancyGuard {
         if(d == 0) return;
         uint256 pay = amount > d ? d : amount;
         debt[msg.sender] = d-pay;
-        stable.safeTransferFrom(msg.sender, address(this), amount);
+        stable.safeTransferFrom(msg.sender, address(this), pay);
 
         emit Repay(msg.sender, pay, debt[msg.sender]);
 
