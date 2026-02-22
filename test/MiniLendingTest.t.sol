@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "lib/forge-std/src/Test.sol";
+import "forge-std/Test.sol";
 import {D4MiniLending} from "../src/day4/D4MiniLending.sol";
 import {MockUSD} from "../src/day4/MockUSD.sol";
 
