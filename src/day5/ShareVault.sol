@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
-import {ReentrancyGuard} from "solmate/src/utils/ReentrancyGuard.sol";
-import {SafeTransferLib} from "solmate/src/utils/SafeTransferLib.sol";
+import {ERC20} from "lib/solmate/src/tokens/ERC20.sol";
+import {ReentrancyGuard} from "lib/solmate/src/utils/ReentrancyGuard.sol";
+import {SafeTransferLib} from "lib/solmate/src/utils/SafeTransferLib.sol";
 
 contract ShareVault is ERC20, ReentrancyGuard {
     using SafeTransferLib for ERC20;
