@@ -19,7 +19,7 @@ library Math {
     }
 }
 
-contract MiniLending {
+contract MiniLending{
     using Math for uint256;
 
     IERC20Like public immutable asset;
