@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "forge-std/Test.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
+import "../lib/forge-std/src/Test.sol";
+import {ERC20} from "lib/solmate/src/tokens/ERC20.sol";
 import {MiniLendingV1} from "../src/day6/MiniLendingV1.sol";
 import {MockOracle} from "../src/day6/MockOracle.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
