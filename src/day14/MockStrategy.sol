@@ -3,20 +3,20 @@ pragma solidity ^0.8.20;
 
 import {IStrategy} from "./IStrategy.sol";
 
-interface IERC20 {
+interface IERC20Like {
     function balanceOf(address) external view returns (uint256);
     function transfer(address, uint256) external returns (bool);
 }
 
 /// @dev Dumb strategy: just holds tokens. Vault must pre-transfer before deposit().
 contract MockStrategy is IStrategy {
-    IERC20 public immutable ASSET;
+    IERC20Like public immutable ASSET;
     address public immutable VAULT;
 
     error NotVault();
 
     constructor(address asset_, address vault_) {
-        ASSET = IERC20(asset_);
+        ASSET = IERC20Like(asset_);
         VAULT = vault_;
     }
 

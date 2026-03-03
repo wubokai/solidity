@@ -63,4 +63,6 @@ contract ERC20 {
         totalSupply -= amount;
         emit Transfer(from, address(0), amount);
     }
+
+    
 }
