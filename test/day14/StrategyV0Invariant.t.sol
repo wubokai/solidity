@@ -22,7 +22,7 @@ contract StrategyV0Invariant is StdInvariant, Test {
 
     function setUp() external {
         token = new MockERC20("Mock", "MOCK", 18);
-        vault = new ShareVaultV2Strategy(token, "SV2", "SV2");
+        vault = new ShareVaultV2Strategy(address(token), "SV2", "SV2");
         strat = new MockStrategy(address(token), address(vault));
         vault.setStrategy(address(strat));
 
@@ -34,7 +34,7 @@ contract StrategyV0Invariant is StdInvariant, Test {
         // mint to invariant/handler so donate actions can work
         token.mint(address(this), 50_000e18);
 
-        address [] memory users = new address[](3);
+        address [] memory actors = new address[](3);
         actors[0] = alice;
         actors[1] = bob;
         actors[2] = carol;
